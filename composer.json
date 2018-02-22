@@ -1,5 +1,5 @@
 {
-  "name": "llwebsol/easy-db",
+  "name": "llwebsol/EasyDb",
   "description": "A Wrapper for PDO",
   "type": "library",
   "license": "MIT",
@@ -9,5 +9,9 @@
       "email": "chris@landlordwebsolutions.com"
     }
   ],
-  "require": {}
+  "autoload": {
+    "psr-4": {
+      "EasyDb\\": "src/"
+    }
+  }
 }
