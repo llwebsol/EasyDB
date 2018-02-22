@@ -78,7 +78,7 @@
          */
         public function query($query_with_placeholders, $named_parameters = []) {
 
-            Event::dispatch(Event::BEFORE_QUERY, ['sql' => $query_with_placeholders], $named_parameters);
+            Event::dispatch(Event::BEFORE_QUERY, ['sql' => $query_with_placeholders, 'parameters' => $named_parameters]);
             try {
                 $stmt = $this->prepareStatement($query_with_placeholders, $named_parameters);
                 $stmt->execute();

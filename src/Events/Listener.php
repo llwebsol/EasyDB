@@ -5,8 +5,8 @@
     interface Listener
     {
         /**
-         * @param array $data        [optional]
-         * @param array &$parameters [optional]
+         * @param array $data            [optional]
+         * @param array &$ref_parameters [optional]
          */
-        public function handleEvent(array $data = [], array &$parameters = []);
+        public function handleEvent(array $data = [], array &$ref_parameters = []);
     }

@@ -19,13 +19,13 @@
 
         /**
          * @param int   $event
-         * @param array &$parameters [optional]
-         * @param array $data        [optional]
+         * @param array $data            [optional]
+         * @param array &$ref_parameters [optional]
          */
-        public static function dispatch($event, $data, &$parameters = []) {
+        public static function dispatch($event, $data, &$ref_parameters = []) {
             $listeners = Listeners::getRegistered($event);
             foreach ($listeners as $listener) {
-                $listener->handleEvent($data, $parameters);
+                $listener->handleEvent($data, $ref_parameters);
             }
         }
     }
