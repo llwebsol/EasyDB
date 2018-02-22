@@ -25,7 +25,7 @@
 
         public function toString() {
 
-            switch ($this->config->val('db_type')) {
+            switch ($this->config->db_type) {
                 case 'pgsql':
                     return $this->pgsql();
                 case 'sqlite':
