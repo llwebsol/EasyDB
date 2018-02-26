@@ -13,8 +13,8 @@
             Event::AFTER_UPDATE  => [],
             Event::BEFORE_INSERT => [],
             Event::AFTER_INSERT  => [],
-            EVENT::BEFORE_DELETE => [],
-            EVENT::AFTER_DELETE  => []
+            Event::BEFORE_DELETE => [],
+            Event::AFTER_DELETE  => []
         ];
 
         /**
@@ -23,7 +23,7 @@
          *
          * @throws RegisterNonListenerException
          */
-        public static function Register($event, $listener) {
+        public static function register($event, $listener) {
             if (!is_a($listener, Listener::class)) {
                 throw new RegisterNonListenerException();
             }
