@@ -24,7 +24,7 @@
          * @throws RegisterNonListenerException
          */
         public static function register($event, $listener) {
-            if (!is_a($listener, Listener::class)) {
+            if (!is_subclass_of($listener, Listener::class)) {
                 throw new RegisterNonListenerException();
             }
 

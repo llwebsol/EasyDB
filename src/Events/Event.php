@@ -25,7 +25,7 @@
         public static function dispatch($event, $data, &$ref_parameters = []) {
             $listeners = Listeners::getRegistered($event);
             foreach ($listeners as $listener) {
-                $listener->handleEvent($data, $ref_parameters);
+                $listener::handleEvent($data, $ref_parameters);
             }
         }
     }

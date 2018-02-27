@@ -203,7 +203,7 @@
          * @param $data
          * @param $table_name
          *
-         * @return int
+         * @return int $rows_affected
          * @throws QueryException
          */
         private function update($data, $table_name) {
@@ -358,11 +358,11 @@
          * @param string $column_name
          * @param array  $in_array
          *
-         * @return array
+         * @return Generator
          * @throws QueryException
          */
         public function findIn($table_name, $column_name, $in_array) {
-            $records = [];
+            $records = new Generator();
             $params = $this->getEnumeratedParameterList($table_name . '_' . $column_name, $in_array);
             if (count($params) > 0) {
                 $query = "SELECT * FROM $table_name WHERE $column_name IN (" . $this->keyList($params) . ')';
