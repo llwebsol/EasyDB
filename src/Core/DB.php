@@ -11,7 +11,7 @@
     use PDOStatement;
 
 
-    class DbInstance
+    class DB
     {
 
         /* @var PDO */

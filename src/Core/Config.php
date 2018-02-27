@@ -43,10 +43,10 @@
          */
         public function getSystemIdentifierQuote() {
             switch ($this->db_type) {
-                case 'pgsql':
-                    return '"';
-                default:
+                case 'mysql':
                     return '`';
+                default:
+                    return '"';
             }
         }
     }

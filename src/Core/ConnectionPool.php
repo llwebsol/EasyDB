@@ -9,11 +9,11 @@
         /**
          * @param Config $config
          *
-         * @return DbInstance
+         * @return DB
          */
         public static function getDbInstance(Config $config) {
             if (!isset(self::$pool[ $config->db_name ])) {
-                self::$pool[ $config->db_name ] = new DbInstance($config);
+                self::$pool[ $config->db_name ] = new DB($config);
             }
 
             return self::$pool[ $config->db_name ];
