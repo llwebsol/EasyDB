@@ -221,3 +221,39 @@ Add a user id to all inserted records
 ````
 
 *Referenced Parameters are available for `BEFORE_INSERT` and `BEFORE_UPDATE` events only
+
+## 5. Transactions
+You can perform multiple actions with a single transaction with the following 3 methods
+- beginTransaction
+- commitTransaction
+- rollbackTransaction
+
+Example:
+```
+    /**
+    * @param array $save_records
+    * @param DB    $db
+    *
+    * @return int $records_saved
+    */
+    function save_a_bunch_of_records(array $save_records, DB $db){
+        $db->beginTransaction();
+
+        $records_saved = 0;
+        foreach($save_records as $table_name => $record){
+            try{
+                $records_saved += $db->save($table_name, $record);
+            }
+            catch(QueryException $ex){
+
+                // All or nothing. Undo all previous saves
+                $db->rollbackTransaction();
+
+                return false;
+            }
+        }
+
+        $db->commitTransaction();
+        return $records_saved;
+    }
+```
