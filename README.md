@@ -7,7 +7,7 @@ To get the most out of this library, every table in your database should have a 
 using composer
 
 ```
-composer require llwebsol/easy-db dev-master
+composer require llwebsol/easy-db 1.0.0
 ```
 
 ## 1. Create a Config
