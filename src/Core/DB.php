@@ -206,7 +206,7 @@
          * @return int $rows_affected
          * @throws QueryException
          */
-        private function update($data, $table_name) {
+        public function update($data, $table_name) {
 
             Event::dispatch(Event::BEFORE_UPDATE, ['table' => $table_name], $data);
 
