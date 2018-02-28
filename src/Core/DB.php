@@ -125,31 +125,34 @@
         }
 
         /**
-         * @param $data
-         * @param $table_name
+         * @param string $table_name
+         * @param array  $data
          *
          * @return bool|int|string (false | rows_affected | last_insert_id )
          * @throws QueryException
          */
-        public function save($data, $table_name) {
+        public function save($table_name, $data) {
 
             // Insert
             if (empty($data['id'])) {
-                return $this->insert($data, $table_name);
+                return $this->insert($table_name, $data);
             } // Update
             else {
-                return $this->update($data, $table_name);
+                $id = $data['id'];
+                unset($data['id']);
+
+                return $this->update($table_name, $id, $data);
             }
         }
 
         /**
-         * @param array $data
-         * @param       $table_name
+         * @param string $table_name
+         * @param array  $data
          *
          * @return int $inserted_id
          * @throws QueryException
          */
-        public function insert(array $data, $table_name) {
+        public function insert($table_name, array $data) {
 
             Event::dispatch(Event::BEFORE_INSERT, ['table' => $table_name], $data);
 
@@ -200,39 +203,37 @@
         }
 
         /**
-         * @param $data
-         * @param $table_name
+         * @param string $table_name
+         * @param int    $id
+         * @param array  $data
          *
          * @return int $rows_affected
          * @throws QueryException
          */
-        public function update($data, $table_name) {
+        public function update($table_name, $id, array $data) {
 
             Event::dispatch(Event::BEFORE_UPDATE, ['table' => $table_name], $data);
 
             $q = $this->config->getSystemIdentifierQuote();
 
             //update database record
-            $update_id = $data['id'];
             $sql_query = "UPDATE $q" . $table_name . "$q SET ";
 
-            $statement_params = [];
+            $statement_params = [':update_id' => $id];
             // keep track of null params for logging output. binding null params
             // was causing foreign key violations (for nullable fields)
             $null_params = [];
             foreach ($data as $field_name => $value) {
-                if ($field_name != 'id') {
-                    if (strtolower($value) == 'null' || is_null($value)) {
-                        $sql_query .= "\n$q" . $field_name . "$q = NULL,";
-                        $null_params[ $field_name ] = 'NULL';
-                    } else {
-                        $sql_query .= "\n$q" . $field_name . "$q = :" . $field_name . ",";
-                        $statement_params[ ':' . $field_name ] = $value;
-                    }
+                if (strtolower($value) == 'null' || is_null($value)) {
+                    $sql_query .= "\n$q" . $field_name . "$q = NULL,";
+                    $null_params[ $field_name ] = 'NULL';
+                } else {
+                    $sql_query .= "\n$q" . $field_name . "$q = :" . $field_name . ",";
+                    $statement_params[ ':' . $field_name ] = $value;
                 }
             }
 
-            $full_param_list = array_merge(['id' => $update_id], $null_params, $statement_params);
+            $full_param_list = array_merge($null_params, $statement_params);
 
             $sql_query = substr($sql_query, 0, -1); // remove trailing comma
             $sql_query .= "\nWHERE $q" . 'id' . "$q = :update_id";
@@ -246,7 +247,7 @@
                         $stmt->bindValue($k, $v);
                     }
                 }
-                $stmt->bindValue(':update_id', $update_id);
+
                 $stmt->execute();
             } catch (Exception $ex) {
                 Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $sql_query, $full_param_list));
@@ -266,13 +267,13 @@
         }
 
         /**
-         * @param int    $id
          * @param string $table_name
+         * @param int    $id
          *
          * @return bool|int rows_affected
          * @throws QueryException
          */
-        public function delete($id, $table_name) {
+        public function delete($table_name, $id) {
             Event::dispatch(Event::BEFORE_DELETE, ['table' => $table_name, 'parameters' => ['id' => $id]]);
             $q = $this->config->getSystemIdentifierQuote();
 
@@ -305,14 +306,14 @@
         /**
          * Performs an SQL delete with a 'WHERE' clause
          *
+         * @param string $table_name
          * @param string $where_with_placeholders
          * @param array  $named_parameters
-         * @param string $table_name
          *
          * @return bool|int rows_affected
          * @throws QueryException
          */
-        function deleteWhere($where_with_placeholders, $named_parameters, $table_name) {
+        function deleteWhere($table_name, $where_with_placeholders, $named_parameters) {
 
             if (empty($where_with_placeholders) || !$table_name) {
                 return false;

@@ -89,7 +89,7 @@ $data = [
     'email' => 'chris@landlordwebsolutions.com'
 ];
 
-$inserted_id = $db->insert($data, 'users');
+$inserted_id = $db->insert('users', $data);
 ```
 
 #### - Update
@@ -97,11 +97,10 @@ Update a record in a given table
 returns the number of rows affected
 ```
     $data = [
-        'id' => 76,
         'email' => 'new.email@email.com'
     ];
 
-    $rows_affected = $db->update($data,'users');
+    $rows_affected = $db->update('users', 76, $data);
 
 ```
 
@@ -114,7 +113,7 @@ Delete a record from a given table
 returns the number of rows affected or `false` if invalid
 ```
     // Delete the record with id=76 from 'users'
-    $rows_deleted = $db->delete(76,'users');
+    $rows_deleted = $db->delete('users', 76);
 ```
 
 #### - Delete Where
@@ -130,11 +129,11 @@ $params = [
     ':new_york_id' => 1432
 ];
 
-$records_deleted = $db->deleteWhere($where,$params, 'clients');
+$records_deleted = $db->deleteWhere('clients', $where, $params);
 ```
 
 #### - Update Where
-Update records from a given table that meet the conditions of hte where clause
+Update records from a given table that meet the conditions of the where clause
 Returns the number of rows updated
 ```
 Set Status to 'disabled' for all users with hotmail accounts
