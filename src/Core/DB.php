@@ -40,7 +40,7 @@
                 try {
                     $this->db_connection = new PDO(DataSourceName::fromConfig($this->config), $this->config->user, $this->config->password);
                 } catch (Exception $ex) {
-                    Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, 'Connect'));
+                    Event::dispatch(EventData::forException($ex));
                     throw new ConnectionException($ex->getMessage(), $ex->getCode(), $ex);
                 }
             }
@@ -77,17 +77,16 @@
          * @throws QueryException
          */
         public function query($query_with_placeholders, $named_parameters = []) {
-
-            Event::dispatch(Event::BEFORE_QUERY, ['sql' => $query_with_placeholders, 'parameters' => $named_parameters]);
+            Event::dispatch(EventData::forBefore(Event::BEFORE_QUERY, '', $named_parameters, $query_with_placeholders), $named_parameters);
             try {
                 $stmt = $this->prepareStatement($query_with_placeholders, $named_parameters);
                 $stmt->execute();
             } catch (Exception $ex) {
-                Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $query_with_placeholders, $named_parameters));
+                Event::dispatch(EventData::forException($ex, $query_with_placeholders, $named_parameters));
                 throw new QueryException($ex->getMessage(), $ex->getCode(), $ex);
             }
 
-            Event::dispatch(Event::AFTER_QUERY, ['sql' => $query_with_placeholders, 'parameters' => $named_parameters]);
+            Event::dispatch(EventData::forAfter(Event::AFTER_QUERY, null, $named_parameters, $query_with_placeholders, $stmt->rowCount()));
 
             return $this->fetch($stmt);
         }
@@ -153,8 +152,7 @@
          * @throws QueryException
          */
         public function insert($table_name, array $data) {
-
-            Event::dispatch(Event::BEFORE_INSERT, ['table' => $table_name], $data);
+            Event::dispatch(EventData::forBefore(Event::BEFORE_INSERT, $table_name, $data), $data);
 
             $q = $this->config->getSystemIdentifierQuote();
             $fields = [];
@@ -187,17 +185,13 @@
                 }
                 $stmt->execute();
             } catch (Exception $ex) {
-                Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $sql_query, $full_param_list));
+                Event::dispatch(EventData::forException($ex, $sql_query, $full_param_list));
                 throw new QueryException($ex->getMessage(), $ex->getCode(), $ex);
             }
 
             $insert_id = $this->db_connection->lastInsertId();
-            Event::dispatch(Event::AFTER_INSERT, [
-                'table'      => $table_name,
-                'sql'        => $sql_query,
-                'parameters' => $full_param_list,
-                'result'     => $insert_id
-            ]);
+            $rows_affected = empty($insert_id) ? 0 : 1;
+            Event::dispatch(EventData::forAfter(Event::AFTER_INSERT, $table_name, $full_param_list, $sql_query, $rows_affected, $insert_id));
 
             return $insert_id;
         }
@@ -211,8 +205,8 @@
          * @throws QueryException
          */
         public function update($table_name, $id, array $data) {
+            Event::dispatch(EventData::forBefore(Event::BEFORE_UPDATE, $table_name, $data), $data);
 
-            Event::dispatch(Event::BEFORE_UPDATE, ['table' => $table_name], $data);
 
             $q = $this->config->getSystemIdentifierQuote();
 
@@ -250,18 +244,13 @@
 
                 $stmt->execute();
             } catch (Exception $ex) {
-                Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $sql_query, $full_param_list));
+                Event::dispatch(EventData::forException($ex, $sql_query, $full_param_list));
 
                 throw new QueryException($ex->getMessage(), $ex->getCode(), $ex);
             }
 
             $row_count = $stmt->rowCount();
-            Event::dispatch(Event::AFTER_UPDATE, [
-                'table'      => $table_name,
-                'sql'        => $sql_query,
-                'parameters' => $full_param_list,
-                'result'     => $row_count
-            ]);
+            Event::dispatch(EventData::forAfter(Event::AFTER_UPDATE, $table_name, $full_param_list, $sql_query, $row_count));
 
             return $row_count;
         }
@@ -274,7 +263,7 @@
          * @throws QueryException
          */
         public function delete($table_name, $id) {
-            Event::dispatch(Event::BEFORE_DELETE, ['table' => $table_name, 'parameters' => ['id' => $id]]);
+            Event::dispatch(EventData::forBefore(Event::BEFORE_DELETE, $table_name, ['id' => $id]));
             $q = $this->config->getSystemIdentifierQuote();
 
             if (!$id || !$table_name) {
@@ -288,17 +277,11 @@
                 $stmt->bindValue(':delete_id', $id);
                 $stmt->execute();
             } catch (Exception $ex) {
-                Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $sql_query, ['id' => $id]));
+                Event::dispatch(EventData::forException($ex, $sql_query, [':delete_id' => $id]));
                 throw new QueryException($ex->getMessage(), $ex->getCode(), $ex);
             }
             $rows_affected = $stmt->rowCount();
-
-            Event::dispatch(Event::AFTER_DELETE, [
-                'sql'        => $sql_query,
-                'table'      => $table_name,
-                'parameters' => ['id' => $id],
-                'result'     => $rows_affected
-            ]);
+            Event::dispatch(EventData::forAfter(Event::AFTER_DELETE, $table_name, [':delete_id' => $id], $sql_query, $rows_affected));
 
             return $rows_affected;
         }
@@ -321,8 +304,7 @@
 
             $sql_query = 'DELETE FROM ' . $table_name . ' WHERE ' . $where_with_placeholders;
 
-            Event::dispatch(Event::BEFORE_DELETE, ['table' => $table_name, 'sql' => $sql_query, 'parameters' => $named_parameters]);
-
+            Event::dispatch(EventData::forBefore(Event::BEFORE_DELETE, $table_name, $named_parameters, $sql_query));
             try {
                 //Run Delete query, collect stats
                 $stmt = $this->db_connection->prepare($sql_query);
@@ -334,19 +316,13 @@
 
                 $stmt->execute();
             } catch (Exception $ex) {
-                Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $sql_query, $named_parameters));
+                Event::dispatch(EventData::forException($ex, $sql_query, $named_parameters));
 
                 throw new QueryException($ex->getMessage(), $ex->getCode(), $ex);
             }
 
             $rows_affected = $stmt->rowCount();
-
-            Event::dispatch(Event::AFTER_DELETE, [
-                'table'      => $table_name,
-                'sql'        => $sql_query,
-                'parameters' => $named_parameters,
-                'result'     => $rows_affected
-            ]);
+            Event::dispatch(EventData::forAfter(Event::AFTER_DELETE, $table_name, $named_parameters, $sql_query, $rows_affected));
 
             return $rows_affected;
 
@@ -421,11 +397,9 @@
          * @return bool|int $rows_affected
          */
         public function updateWhere($table_name, $update_values, $where_with_placeholders, $named_parameters = null) {
-            Event::dispatch(Event::BEFORE_UPDATE, [
-                'table'      => $table_name,
-                'where'      => $where_with_placeholders,
-                'parameters' => $named_parameters
-            ], $update_values);
+
+            $all_params = empty($named_parameters) ? $update_values : array_merge($update_values, $named_parameters);
+            Event::dispatch(EventData::forBefore(Event::BEFORE_UPDATE, $table_name, $all_params, $where_with_placeholders), $update_values);
 
             $q = $this->config->getSystemIdentifierQuote();
             $sql_query = 'UPDATE ' . $q . $table_name . $q . ' SET ';
@@ -470,23 +444,14 @@
 
                 $stmt->execute();
             } catch (Exception $ex) {
-                Event::dispatch(Event::ON_ERROR, $this->getExceptionDetails($ex, $sql_query, $full_param_list));
+                Event::dispatch(EventData::forException($ex, $sql_query, $full_param_list));
 
                 return false;
             }
 
             $rows_affected = $stmt->rowCount();
-
-            Event::dispatch(Event::AFTER_UPDATE, ['table' => $table_name, 'sql' => $sql_query, 'parameters' => $full_param_list]);
+            Event::dispatch(EventData::forAfter(Event::AFTER_UPDATE, $table_name, $full_param_list, $sql_query, $rows_affected));
 
             return $rows_affected;
-        }
-
-        private function getExceptionDetails(Exception $exception, $sql = '', $parameters = []) {
-            return [
-                'exception'  => $exception,
-                'sql'        => $sql,
-                'parameters' => $parameters
-            ];
         }
     }

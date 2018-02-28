@@ -3,6 +3,8 @@
     namespace EasyDb\Events;
 
 
+    use EasyDb\Core\EventData;
+
     class Event
     {
         const ON_ERROR      = 1;
@@ -18,12 +20,11 @@
         const AFTER_DELETE  = 256;
 
         /**
-         * @param int   $event
-         * @param array $data            [optional]
-         * @param array &$ref_parameters [optional]
+         * @param EventData $data
+         * @param array     &$ref_parameters [optional]
          */
-        public static function dispatch($event, $data, &$ref_parameters = []) {
-            $listeners = Listeners::getRegistered($event);
+        public static function dispatch(EventData $data, &$ref_parameters = []) {
+            $listeners = Listeners::getRegistered($data->getEvent());
             foreach ($listeners as $listener) {
                 $listener::handleEvent($data, $ref_parameters);
             }

@@ -7,18 +7,18 @@ To get the most out of this library, every table in your database should have a 
 using composer
 
 ```
-    composer require llwebsol/easy-db dev-master
+composer require llwebsol/easy-db dev-master
 ```
 
 ## 1. Create a Config
 ```
-    $config = new EasyDb\Core\Config([
-        'db_type' => 'mysql',
-        'host' => 'localhost',
-        'db_name' => 'my_test_db',
-        'user' => 'root',
-        'password' => ''
-    ]);
+$config = new EasyDb\Core\Config([
+    'db_type' => 'mysql',
+    'host' => 'localhost',
+    'db_name' => 'my_test_db',
+    'user' => 'root',
+    'password' => ''
+]);
 ```
 
 #### Accepted `db_type` options:
@@ -31,31 +31,31 @@ using composer
 
 #### Complete List of Options:
 ```
-    db_type
-    host
-    db_name
-    port
-    user
-    password
+db_type
+host
+db_name
+port
+user
+password
 
-    // mysql specific:
-    unix_socket
-    charset
+// mysql specific:
+unix_socket
+charset
 
-    // sqlsrv specific:
-    app
-    connection_pooling
-    encrypt
-    failover_partner
-    login_timeout
-    multiple_active_result_sets
-    quoted_id
-    server
-    trace_file
-    trace_on
-    transaction_isolation
-    trust_server_certificate
-    wsid
+// sqlsrv specific:
+app
+connection_pooling
+encrypt
+failover_partner
+login_timeout
+multiple_active_result_sets
+quoted_id
+server
+trace_file
+trace_on
+transaction_isolation
+trust_server_certificate
+wsid
 ```
 
 
@@ -96,12 +96,11 @@ $inserted_id = $db->insert('users', $data);
 Update a record in a given table
 returns the number of rows affected
 ```
-    $data = [
-        'email' => 'new.email@email.com'
-    ];
+$data = [
+    'email' => 'new.email@email.com'
+];
 
-    $rows_affected = $db->update('users', 76, $data);
-
+$rows_affected = $db->update('users', 76, $data);
 ```
 
 #### - Save
@@ -112,8 +111,8 @@ if the $data has an 'id' field it will update, otherwise it will insert
 Delete a record from a given table
 returns the number of rows affected or `false` if invalid
 ```
-    // Delete the record with id=76 from 'users'
-    $rows_deleted = $db->delete('users', 76);
+// Delete the record with id=76 from 'users'
+$rows_deleted = $db->delete('users', 76);
 ```
 
 #### - Delete Where
@@ -148,13 +147,13 @@ $rows_updated = $db->updateWhere('users', $update, $where, $params);
 #### - Find In
 Returns a Generator with all records in table where `$column_name IN ( $in_array )`
 ```
-    $records = $db->findIn('clients', 'city_id', [5142,1432,76,222]);
+$records = $db->findIn('clients', 'city_id', [5142,1432,76,222]);
 ```
 SQL Equivalent:
 ```
-    SELECT *
-    FROM clients
-    WHERE city_id IN (5142,1432,76,222);
+SELECT *
+FROM clients
+WHERE city_id IN (5142,1432,76,222);
 ```
 
 ## 4. Events
@@ -180,44 +179,42 @@ Helpers:
 
 Echo the sql of every query that is performed
 ```
-    use EasyDb\Events\Listener;
+use EasyDb\Events\Listener;
 
-    class QueryListener implements Listener
-    {
-
-        /**
-         * @param array $data            [optional]
-         * @param array &$ref_parameters [optional]
-         */
-        public static function handleEvent(array $data = [], array &$ref_parameters = []) {
-            echo $data['sql'];
-        }
+class QueryListener implements Listener
+{
+    /**
+     * @param EventData $data
+     * @param array     &$ref_parameters [optional]
+     */
+    public static function handleEvent(EventData $data, array &$ref_parameters = []){
+        echo $data->getSql();
     }
+}
 
-    // Register the listener
-    Listeners::register(Event::BEFORE_QUERY, QueryListener::class);
+// Register the listener
+Listeners::register(Event::BEFORE_QUERY, QueryListener::class);
 ```
 
 Add a user id to all inserted records
 
 *Assumes all of your tables have a `created_user` column
 ```
- use EasyDb\Events\Listener;
+use EasyDb\Events\Listener;
 
-    class InsertListener implements Listener
-    {
-
-        /**
-         * @param array $data            [optional]
-         * @param array &$ref_parameters [optional]
-         */
-        public static function handleEvent(array $data = [], array &$ref_parameters = []) {
-            $ref_parameters['created_user'] = $_SESSION['user'];
-        }
+class InsertListener implements Listener
+{
+    /**
+     * @param EventData $data
+     * @param array     &$ref_parameters [optional]
+     */
+    public static function handleEvent(EventData $data, array &$ref_parameters = []){
+        $ref_parameters['created_user'] = $_SESSION['user'];
     }
+}
 
-    // Register the listener
-    Listeners::register(Event::BEFORE_QUERY, InsertListener::class);
+// Register the listener
+Listeners::register(Event::BEFORE_QUERY, InsertListener::class);
 ````
 
 *Referenced Parameters are available for `BEFORE_INSERT` and `BEFORE_UPDATE` events only
@@ -230,30 +227,30 @@ You can perform multiple actions with a single transaction with the following 3 
 
 Example:
 ```
-    /**
-    * @param array $save_records
-    * @param DB    $db
-    *
-    * @return int $records_saved
-    */
-    function save_a_bunch_of_records(array $save_records, DB $db){
-        $db->beginTransaction();
+/**
+* @param array $save_records
+* @param DB    $db
+*
+* @return int $records_saved
+*/
+function save_a_bunch_of_records(array $save_records, DB $db){
+    $db->beginTransaction();
 
-        $records_saved = 0;
-        foreach($save_records as $table_name => $record){
-            try{
-                $records_saved += $db->save($table_name, $record);
-            }
-            catch(QueryException $ex){
-
-                // All or nothing. Undo all previous saves
-                $db->rollbackTransaction();
-
-                return false;
-            }
+    $records_saved = 0;
+    foreach($save_records as $table_name => $record){
+        try{
+            $records_saved += $db->save($table_name, $record);
         }
+        catch(QueryException $ex){
 
-        $db->commitTransaction();
-        return $records_saved;
+            // All or nothing. Undo all previous saves
+            $db->rollbackTransaction();
+
+            return false;
+        }
     }
+
+    $db->commitTransaction();
+    return $records_saved;
+}
 ```
