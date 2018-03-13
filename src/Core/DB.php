@@ -38,7 +38,9 @@
         private function connect() {
             if (empty($this->db_connection)) {
                 try {
-                    $this->db_connection = new PDO(DataSourceName::fromConfig($this->config), $this->config->user, $this->config->password);
+                    $dsn = DataSourceName::fromConfig($this->config);
+                    $show_errors = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION];
+                    $this->db_connection = new PDO($dsn, $this->config->user, $this->config->password, $show_errors);
                 } catch (Exception $ex) {
                     Event::dispatch(EventData::forException($ex));
                     throw new ConnectionException($ex->getMessage(), $ex->getCode(), $ex);
