@@ -74,10 +74,21 @@ accepts any database query you desire, with an optional array of bound parameter
 returns a Generator for iterating through your result set
 
 ```
-$query = 'SELECT * FROM users WHERE id = :user_id';
-$params = [':user_id' => 7];
+$query = 'SELECT * FROM users WHERE name = :user_name';
+$params = [':user_name' => 'Ted'];
 
-$results = $db->query($query,$params);
+$users = $db->query($query,$params);
+```
+
+#### - QueryOne
+helper for getting a single record from the database
+
+Returns the record as an array, (not wrapped in a generator)
+```
+$query = 'SELECT * FROM users WHERE id = :user_id';
+$params = [':user_id' => 7]
+
+$user = $db->queryOne($query,$params);
 ```
 
 #### - Insert

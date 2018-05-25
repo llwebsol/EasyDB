@@ -70,6 +70,20 @@
         }
 
         /**
+         * @param string $query_with_placeholders
+         * @param array  $named_parameters
+         *
+         * @return array $record
+         * @throws QueryException
+         */
+        public function queryOne($query_with_placeholders, $named_parameters = []) {
+            $results = $this->query($query_with_placeholders, $named_parameters);
+            foreach ($results as $result) {
+                return $result;
+            }
+        }
+
+        /**
          * Query the database
          *
          * @param string $query_with_placeholders
