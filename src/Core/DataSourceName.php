@@ -60,8 +60,8 @@
 
         private function sqlite() {
             $dsn = 'sqlite:';
-            if (isset($this->config['path'])) {
-                $dsn .= $this->config['path'];
+            if (isset($this->config->path)) {
+                $dsn .= $this->config->path;
             } else {
                 $dsn .= ':memory:';
             }

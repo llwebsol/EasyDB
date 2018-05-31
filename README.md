@@ -56,6 +56,9 @@ trace_on
 transaction_isolation
 trust_server_certificate
 wsid
+
+// sqlite specific:
+path
 ```
 
 

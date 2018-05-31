@@ -30,6 +30,9 @@
         public $trust_server_certificate;
         public $wsid;
 
+        // sqlite specific:
+        public $path;
+
         public function __construct(array $config) {
             foreach ($config as $key => $value) {
                 if (property_exists($this, $key)) {
