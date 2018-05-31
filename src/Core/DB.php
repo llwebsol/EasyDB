@@ -191,7 +191,11 @@
 
             $fields = implode(',', $fields);
             $data_values = substr($data_values, 0, -1);
-            $sql_query = "INSERT INTO \n$q" . $table_name . "$q ( " . $fields . " )\n VALUES (" . $data_values . ");\n";
+            $sql_query = "INSERT INTO \n$q" . $table_name . "$q ( " . $fields . " )\n VALUES (" . $data_values . ")";
+            if ($this->config->db_type === 'pgsql') {
+                $sql_query .= "\nRETURNING id;\n";
+            }
+
             try {
                 $stmt = $this->db_connection->prepare($sql_query);
                 if ($statement_params) {
@@ -205,7 +209,12 @@
                 throw new QueryException($ex->getMessage(), $ex->getCode(), $ex);
             }
 
-            $insert_id = $this->db_connection->lastInsertId();
+            if ($this->config->db_type === 'pgsql') {
+                $insert_id = $stmt->fetchColumn(0);
+            } else {
+                $insert_id = $this->db_connection->lastInsertId();
+            }
+
             $rows_affected = empty($insert_id) ? 0 : 1;
             Event::dispatch(EventData::forAfter(Event::AFTER_INSERT, $table_name, $full_param_list, $sql_query, $rows_affected, $insert_id));
 
