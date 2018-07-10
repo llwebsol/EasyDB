@@ -363,13 +363,11 @@
          * @return Generator
          * @throws QueryException
          */
-        public function findIn($table_name, $column_name, $in_array) {
-            $records = new Generator();
+        public function findIn($table_name, $column_name, array $in_array) {
             $params = $this->getEnumeratedParameterList($table_name . '_' . $column_name, $in_array);
-            if (count($params) > 0) {
-                $query = "SELECT * FROM $table_name WHERE $column_name IN (" . $this->keyList($params) . ')';
-                $records = $this->query($query, $params);
-            }
+
+            $query = "SELECT * FROM $table_name WHERE $column_name IN (" . $this->keyList($params) . ')';
+            $records = $this->query($query, $params);
 
             return $records;
         }
