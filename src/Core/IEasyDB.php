@@ -4,8 +4,6 @@
 
     interface IEasyDB
     {
-        public function __construct(Config $config);
-
         public function beginTransaction();
 
         public function commitTransaction();
