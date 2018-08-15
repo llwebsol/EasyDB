@@ -11,7 +11,7 @@
     use PDOStatement;
 
 
-    class DB
+    class DB implements IEasyDB
     {
 
         /* @var PDO */
