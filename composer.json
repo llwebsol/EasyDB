@@ -9,6 +9,9 @@
       "email": "chris@landlordwebsolutions.com"
     }
   ],
+  "require": {
+    "ext-pdo": "*"
+  },
   "autoload": {
     "psr-4": {
       "EasyDb\\": "src/"
